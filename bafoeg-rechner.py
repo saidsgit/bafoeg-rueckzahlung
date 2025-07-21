@@ -1,9 +1,38 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
+import plotly.graph_objects as go
 
-# --- Layout Setup ---
+# --- Dark Mode Umschalter ---
+dark_mode = st.sidebar.checkbox("🌙 Dark Mode aktivieren", value=False)
+
+if dark_mode:
+    bg_color = "#121212"
+    text_color = "#FFFFFF"
+    grid_color = "#333333"
+else:
+    bg_color = "#FFFFFF"
+    text_color = "#000000"
+    grid_color = "#DDDDDD"
+
+st.markdown(
+    f"""
+    <style>
+    .main {{
+        background-color: {bg_color};
+        color: {text_color};
+        transition: background-color 0.5s, color 0.5s;
+    }}
+    .st-bb {{
+        background-color: {bg_color};
+        color: {text_color};
+    }}
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+# --- Layout ---
 st.set_page_config(page_title="BAföG-Zahlungscheck", layout="centered")
 
 st.title("🎓 BAföG-Zahlungscheck (for Säbbeboi)")
@@ -40,7 +69,10 @@ with st.expander("ℹ️ Typische Renditen nach Anlageart"):
 einmalzahlung = hoechstgrenze * (1 - rabatt_prozent / 100)
 quartale = hoechstgrenze / quartalsrate
 jahre = quartale / 4
-endwert = einmalzahlung * (1 + rendite / 100) ** jahre
+
+# Berechnung mit quartalsweisem Zins
+vierteljahreszins = (1 + rendite / 100) ** 0.25 - 1
+endwert = einmalzahlung * (1 + vierteljahreszins) ** quartale
 vorteil = endwert - hoechstgrenze
 
 # --- Ergebnisse anzeigen ---
@@ -59,7 +91,8 @@ zinsraten = np.arange(0.00, 0.065, 0.005)
 tabelle = []
 
 for zins in zinsraten:
-    ew = einmalzahlung * (1 + zins) ** jahre
+    vierteljahreszins_temp = (1 + zins) ** 0.25 - 1
+    ew = einmalzahlung * (1 + vierteljahreszins_temp) ** quartale
     diff = ew - hoechstgrenze
     tabelle.append({
         "Rendite p.a.": f"{zins:.2%}",
@@ -72,26 +105,65 @@ df = pd.DataFrame(tabelle)
 st.markdown("## 📊 Renditevergleich")
 st.dataframe(df, use_container_width=True)
 
-# --- Diagramm: Investition vs Rückzahlung über Zeit ---
-st.markdown("## 📈 Entwicklung über die Zeit")
-
+# --- Interaktives Diagramm mit Plotly ---
 zeitpunkte = np.arange(0, quartale + 1)
 jahre_zeit = zeitpunkte / 4
 
-vierteljahreszins = (1 + rendite / 100) ** 0.25 - 1
 investitionswerte = einmalzahlung * (1 + vierteljahreszins) ** zeitpunkte
 kumulierte_rueckzahlung = quartalsrate * zeitpunkte
 
-fig, ax = plt.subplots(figsize=(8, 4.5))
-ax.plot(jahre_zeit, investitionswerte, label="Investitionswert (Einmalzahlung)", color="green", linewidth=2)
-ax.plot(jahre_zeit, kumulierte_rueckzahlung, label="Kumulierte Rückzahlung (Raten)", color="red", linewidth=2, linestyle="--")
-ax.set_xlabel("Jahre")
-ax.set_ylabel("Euro (€)")
-ax.set_title("Entwicklung von Investition und Rückzahlung über die Zeit")
-ax.legend()
-ax.grid(True, alpha=0.3)
+fig = go.Figure()
 
-st.pyplot(fig)
+fig.add_trace(go.Scatter(
+    x=jahre_zeit, y=investitionswerte,
+    mode='lines+markers',
+    name='Investitionswert (Einmalzahlung)',
+    line=dict(color='green', width=3),
+    marker=dict(size=6)
+))
+
+fig.add_trace(go.Scatter(
+    x=jahre_zeit, y=kumulierte_rueckzahlung,
+    mode='lines+markers',
+    name='Kumulierte Rückzahlung (Raten)',
+    line=dict(color='red', width=3, dash='dash'),
+    marker=dict(size=6)
+))
+
+fig.update_layout(
+    title='Entwicklung von Investition und Rückzahlung über die Zeit',
+    xaxis_title='Jahre',
+    yaxis_title='Euro (€)',
+    plot_bgcolor=bg_color,
+    paper_bgcolor=bg_color,
+    font=dict(color=text_color),
+    hovermode='x unified',
+    legend=dict(x=0.02, y=0.98)
+)
+
+st.plotly_chart(fig, use_container_width=True)
+
+# --- FAQ Bereich ---
+st.markdown("## ❓ Häufige Fragen (FAQ)")
+with st.expander("Was passiert, wenn ich BAföG nicht rechtzeitig zurückzahle?"):
+    st.write("""
+    Wird BAföG nicht fristgerecht zurückgezahlt, können Mahngebühren und Zinsen anfallen.  
+    Im schlimmsten Fall drohen Vollstreckungsmaßnahmen.
+    """)
+with st.expander("Wie errechnet sich der Rabatt bei Einmalzahlung?"):
+    st.write("""
+    Der Rabatt ist eine pauschale Vergünstigung, die das Bundesverwaltungsamt für eine frühzeitige Rückzahlung gewährt.  
+    Aktuell liegt er bei ca. 21 % der Rückzahlungssumme.
+    """)
+with st.expander("Kann ich den Rückzahlungszeitraum verlängern?"):
+    st.write("""
+    Ja, auf Antrag kann die Rückzahlung gestundet oder in Raten verlängert werden, z.B. bei geringem Einkommen.
+    """)
+with st.expander("Wie kann ich die Anlagerendite realistisch einschätzen?"):
+    st.write("""
+    Nutze konservative Werte für risikoarme Anlagen (Tagesgeld, Festgeld) und höhere Renditen für Aktien oder Immobilien.  
+    Denk daran: Höhere Rendite bedeutet meist höheres Risiko.
+    """)
 
 # --- Erklärung / Methodik ---
 with st.expander("ℹ️ Wie wird gerechnet?"):
