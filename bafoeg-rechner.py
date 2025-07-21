@@ -143,27 +143,6 @@ fig.update_layout(
 
 st.plotly_chart(fig, use_container_width=True)
 
-# --- FAQ Bereich ---
-st.markdown("## ❓ Häufige Fragen (FAQ)")
-with st.expander("Was passiert, wenn ich BAföG nicht rechtzeitig zurückzahle?"):
-    st.write("""
-    Wird BAföG nicht fristgerecht zurückgezahlt, können Mahngebühren und Zinsen anfallen.  
-    Im schlimmsten Fall drohen Vollstreckungsmaßnahmen.
-    """)
-with st.expander("Wie errechnet sich der Rabatt bei Einmalzahlung?"):
-    st.write("""
-    Der Rabatt ist eine pauschale Vergünstigung, die das Bundesverwaltungsamt für eine frühzeitige Rückzahlung gewährt.  
-    Aktuell liegt er bei ca. 21 % der Rückzahlungssumme.
-    """)
-with st.expander("Kann ich den Rückzahlungszeitraum verlängern?"):
-    st.write("""
-    Ja, auf Antrag kann die Rückzahlung gestundet oder in Raten verlängert werden, z.B. bei geringem Einkommen.
-    """)
-with st.expander("Wie kann ich die Anlagerendite realistisch einschätzen?"):
-    st.write("""
-    Nutze konservative Werte für risikoarme Anlagen (Tagesgeld, Festgeld) und höhere Renditen für Aktien oder Immobilien.  
-    Denk daran: Höhere Rendite bedeutet meist höheres Risiko.
-    """)
 
 # --- Erklärung / Methodik ---
 with st.expander("ℹ️ Wie wird gerechnet?"):
