@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 # --- Layout Setup ---
 st.set_page_config(page_title="BAföG-Zahlungscheck", layout="centered")
 
-st.title("🎓 BAföG-Zahlungscheck")
+st.title("🎓 BAföG-Zahlungscheck (for Säbbeboi)")
 st.subheader("Einmalzahlung vs. Raten – Was lohnt sich mehr?")
 
 # --- Sidebar Eingaben ---
@@ -16,6 +16,25 @@ hoechstgrenze = st.sidebar.number_input("BAföG-Höchstgrenze (€)", value=1001
 rabatt_prozent = st.sidebar.slider("Rabatt bei Einmalzahlung (%)", 0, 50, 21)
 quartalsrate = st.sidebar.number_input("Ratenzahlung pro Quartal (€)", value=390.0, step=10.0)
 rendite = st.sidebar.slider("Anlagerendite (p.a. in %)", 0.0, 6.0, 3.0, step=0.1)
+
+# --- Info-Fenster mit Anlagearten und Renditen ---
+with st.expander("ℹ️ Typische Renditen nach Anlageart"):
+    st.markdown("""
+    | Anlageart              | Durchschnittliche Rendite p.a. | Quellen / Hinweise                         |
+    |-----------------------|-------------------------------|-------------------------------------------|
+    | Tagesgeldkonto         | 0,1 % – 0,5 %                 | Deutsche Bundesbank, 2024                  |
+    | Festgeld               | 0,5 % – 1,5 %                 | Bundesfinanzministerium, aktuelle Angebote|
+    | Staatsanleihen (10J)   | ca. 1,0 % – 2,0 %             | Bundesanleihe Renditekurven                |
+    | Aktien (DAX)           | ca. 7 % – 8 % (Langfristig)  | Historische Renditen, Deutsche Börse       |
+    | Immobilien (Miete)     | ca. 3 % – 5 % (Netto)         | Statistisches Bundesamt, Marktdaten        |
+
+    **Erläuterung:**  
+    Die hier angegebenen Renditen sind historische oder aktuell marktübliche Durchschnittswerte.  
+    Die tatsächliche Rendite kann stark schwanken, insbesondere bei Aktien und Immobilien.  
+    Eine sichere Verzinsung (z.B. Tagesgeld) ist in der Regel deutlich niedriger, aber auch weniger riskant.
+
+    Nutze diese Werte als grobe Orientierung bei der Bewertung deiner Anlagerendite im Tool.
+    """)
 
 # --- Berechnungen ---
 einmalzahlung = hoechstgrenze * (1 - rabatt_prozent / 100)
@@ -59,17 +78,13 @@ st.markdown("## 📈 Entwicklung über die Zeit")
 zeitpunkte = np.arange(0, quartale + 1)
 jahre_zeit = zeitpunkte / 4
 
-# Investitionswert zu jedem Quartal (Zinseszins quartalsweise)
 vierteljahreszins = (1 + rendite / 100) ** 0.25 - 1
 investitionswerte = einmalzahlung * (1 + vierteljahreszins) ** zeitpunkte
-
-# Kumulierte Rückzahlung bis zu jedem Quartal
 kumulierte_rueckzahlung = quartalsrate * zeitpunkte
 
 fig, ax = plt.subplots(figsize=(8, 4.5))
 ax.plot(jahre_zeit, investitionswerte, label="Investitionswert (Einmalzahlung)", color="green", linewidth=2)
 ax.plot(jahre_zeit, kumulierte_rueckzahlung, label="Kumulierte Rückzahlung (Raten)", color="red", linewidth=2, linestyle="--")
-
 ax.set_xlabel("Jahre")
 ax.set_ylabel("Euro (€)")
 ax.set_title("Entwicklung von Investition und Rückzahlung über die Zeit")
