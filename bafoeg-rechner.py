@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import plotly.graph_objects as go
+import matplotlib.pyplot as plt
 
 # --- Dark Mode Umschalter ---
 dark_mode = st.sidebar.checkbox("🌙 Dark Mode aktivieren", value=False)
@@ -105,44 +105,25 @@ df = pd.DataFrame(tabelle)
 st.markdown("## 📊 Renditevergleich")
 st.dataframe(df, use_container_width=True)
 
-# --- Interaktives Diagramm mit Plotly ---
+# --- Diagramm mit Matplotlib ---
 zeitpunkte = np.arange(0, quartale + 1)
 jahre_zeit = zeitpunkte / 4
-
 investitionswerte = einmalzahlung * (1 + vierteljahreszins) ** zeitpunkte
 kumulierte_rueckzahlung = quartalsrate * zeitpunkte
 
-fig = go.Figure()
+fig, ax = plt.subplots()
+fig.patch.set_facecolor(bg_color)
+ax.set_facecolor(bg_color)
+ax.plot(jahre_zeit, investitionswerte, label="Investitionswert (Einmalzahlung)", color='green')
+ax.plot(jahre_zeit, kumulierte_rueckzahlung, label="Kumulierte Rückzahlung (Raten)", color='red', linestyle='--')
+ax.set_title('Entwicklung von Investition und Rückzahlung über die Zeit', color=text_color)
+ax.set_xlabel('Jahre', color=text_color)
+ax.set_ylabel('Euro (€)', color=text_color)
+ax.grid(True, color=grid_color)
+ax.tick_params(colors=text_color)
+ax.legend()
 
-fig.add_trace(go.Scatter(
-    x=jahre_zeit, y=investitionswerte,
-    mode='lines+markers',
-    name='Investitionswert (Einmalzahlung)',
-    line=dict(color='green', width=3),
-    marker=dict(size=6)
-))
-
-fig.add_trace(go.Scatter(
-    x=jahre_zeit, y=kumulierte_rueckzahlung,
-    mode='lines+markers',
-    name='Kumulierte Rückzahlung (Raten)',
-    line=dict(color='red', width=3, dash='dash'),
-    marker=dict(size=6)
-))
-
-fig.update_layout(
-    title='Entwicklung von Investition und Rückzahlung über die Zeit',
-    xaxis_title='Jahre',
-    yaxis_title='Euro (€)',
-    plot_bgcolor=bg_color,
-    paper_bgcolor=bg_color,
-    font=dict(color=text_color),
-    hovermode='x unified',
-    legend=dict(x=0.02, y=0.98)
-)
-
-st.plotly_chart(fig, use_container_width=True)
-
+st.pyplot(fig)
 
 # --- Erklärung / Methodik ---
 with st.expander("ℹ️ Wie wird gerechnet?"):
